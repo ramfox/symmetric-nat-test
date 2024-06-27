@@ -1,9 +1,12 @@
 // https://webrtchacks.com/symmetric-nat/
 // Modified by https://github.com/tomchen for https://github.com/arcomage/arcomage-hd
 // parseCandidate from https://github.com/fippo/sdp
+import { IPv4 } from 'ipaddr.js';
+
 function parseCandidate(line: string) {
   let parts;
   // Parse both constiants.
+  console.log(line);
   if (line.indexOf("a=candidate:") === 0) {
     parts = line.substring(12).split(" ");
   } else {
@@ -62,13 +65,15 @@ export const isNormalNat = () =>
     pc.onicecandidate = function (e) {
       if (e.candidate && e.candidate.candidate.indexOf("srflx") !== -1) {
         const cand = parseCandidate(e.candidate.candidate);
-        const { relatedPort, port } = cand;
-        if (relatedPort !== null && relatedPort !== undefined) {
-          if (!candidates[relatedPort]) {
-            candidates[relatedPort] = [];
-          }
-          if (port !== null && port !== undefined) {
-            candidates[relatedPort].push(port);
+        const { relatedPort, port, ip } = cand;
+        if (IPv4.isValid(ip)) {
+          if (relatedPort !== null && relatedPort !== undefined) {
+            if (!candidates[relatedPort]) {
+              candidates[relatedPort] = [];
+            }
+            if (port !== null && port !== undefined) {
+              candidates[relatedPort].push(port);
+            }
           }
         }
       } else if (!e.candidate) {
